@@ -1,0 +1,21 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Variables reales
+.env
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
