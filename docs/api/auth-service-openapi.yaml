@@ -1,7 +1,8 @@
 openapi: 3.0.3
+
 info:
   title: Auth Service API
-  description: API del microservicio de autenticacion de TiendaTech. Permite iniciar sesion y validar tokens JWT.
+  description: API del microservicio de autenticacion de TiendaTech. Permite registrar usuarios, iniciar sesion y validar tokens JWT.
   version: 1.0.0
 
 servers:
@@ -10,7 +11,44 @@ servers:
   - url: http://localhost:8001/auth
     description: Servicio auth directo
 
+tags:
+  - name: Auth
+    description: Endpoints de autenticacion y validacion JWT
+
 paths:
+  /register:
+    post:
+      summary: Registrar usuario
+      description: Registra un nuevo usuario en el sistema y retorna un token JWT.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              nombre: Jeremy Gaibor
+              email: jeremy@tiendatech.com
+              password: "1234"
+              rol: ADMIN
+      responses:
+        "200":
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                status: success
+                message: Usuario registrado correctamente
+                token: eyJhbGciOiJIUzI1NiJ9...
+        "400":
+          description: Datos invalidos
+        "500":
+          description: Error interno del servidor
+
   /login:
     post:
       summary: Iniciar sesion
@@ -62,6 +100,8 @@ paths:
                 valid: true
         "401":
           description: Token no autorizado o invalido
+        "500":
+          description: Error interno del servidor
 
 components:
   securitySchemes:
@@ -71,6 +111,28 @@ components:
       bearerFormat: JWT
 
   schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - nombre
+        - email
+        - password
+        - rol
+      properties:
+        nombre:
+          type: string
+          example: Jeremy Gaibor
+        email:
+          type: string
+          format: email
+          example: jeremy@tiendatech.com
+        password:
+          type: string
+          example: "1234"
+        rol:
+          type: string
+          example: ADMIN
+
     LoginRequest:
       type: object
       required:
