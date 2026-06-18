@@ -1,0 +1,226 @@
+openapi: 3.0.3
+info:
+  title: Resource Service API
+  description: API del microservicio de recursos de TiendaTech. Gestiona el catalogo de productos y protege sus endpoints con JWT.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/resources
+    description: API Gateway local con Nginx
+  - url: http://localhost:8002/resources
+    description: Servicio resource directo
+
+paths:
+  /productos:
+    get:
+      summary: Listar productos
+      description: Obtiene todos los productos activos registrados en el catalogo.
+      tags:
+        - Productos
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductoResponse'
+        "401":
+          description: Token no enviado o invalido
+
+    post:
+      summary: Crear producto
+      description: Registra un nuevo producto en el catalogo y genera una notificacion.
+      tags:
+        - Productos
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoRequest'
+            example:
+              nombre: Memoria RAM 122GB DDR4
+              categoria: RAM
+              marca: Intel
+              precio: 45.99
+              stock: 20
+      responses:
+        "200":
+          description: Producto creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        "400":
+          description: Datos invalidos
+        "401":
+          description: Token no enviado o invalido
+
+  /productos/{id}:
+    get:
+      summary: Buscar producto por ID
+      description: Obtiene la informacion de un producto especifico.
+      tags:
+        - Productos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        "401":
+          description: Token no enviado o invalido
+        "404":
+          description: Producto no encontrado
+
+    put:
+      summary: Actualizar producto
+      description: Actualiza los datos de un producto existente y genera una notificacion.
+      tags:
+        - Productos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoRequest'
+            example:
+              nombre: Memoria RAM 122GB DDR4 Actualizada
+              categoria: RAM
+              marca: Intel
+              precio: 49.99
+              stock: 25
+      responses:
+        "200":
+          description: Producto actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        "401":
+          description: Token no enviado o invalido
+        "404":
+          description: Producto no encontrado
+
+    delete:
+      summary: Eliminar producto
+      description: Desactiva logicamente un producto y genera una notificacion.
+      tags:
+        - Productos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: Producto eliminado correctamente
+          content:
+            application/json:
+              example:
+                status: success
+                message: Producto eliminado correctamente
+        "401":
+          description: Token no enviado o invalido
+        "404":
+          description: Producto no encontrado
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ProductoRequest:
+      type: object
+      required:
+        - nombre
+        - categoria
+        - marca
+        - precio
+        - stock
+      properties:
+        nombre:
+          type: string
+          example: Memoria RAM 122GB DDR4
+        categoria:
+          type: string
+          example: RAM
+        marca:
+          type: string
+          example: Intel
+        precio:
+          type: number
+          format: double
+          example: 45.99
+        stock:
+          type: integer
+          example: 20
+
+    ProductoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        nombre:
+          type: string
+          example: Memoria RAM 122GB DDR4
+        categoria:
+          type: string
+          example: RAM
+        marca:
+          type: string
+          example: Intel
+        precio:
+          type: number
+          format: double
+          example: 45.99
+        stock:
+          type: integer
+          example: 20
+        fechaRegistro:
+          type: string
+          format: date
+          example: "2026-06-17"
+        activo:
+          type: boolean
+          example: true

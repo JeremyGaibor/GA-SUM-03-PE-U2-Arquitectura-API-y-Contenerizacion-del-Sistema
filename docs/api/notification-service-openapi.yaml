@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: Notification Service API
+  description: API del microservicio de notificaciones de TiendaTech. Registra eventos generados por otros microservicios.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/notifications
+    description: API Gateway local con Nginx
+  - url: http://localhost:8003/notifications
+    description: Servicio notification directo
+
+paths:
+  /:
+    get:
+      summary: Listar notificaciones
+      description: Obtiene todas las notificaciones registradas.
+      tags:
+        - Notificaciones
+      responses:
+        "200":
+          description: Lista de notificaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationResponse'
+
+    post:
+      summary: Crear notificacion
+      description: Registra una nueva notificacion de evento.
+      tags:
+        - Notificaciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+            example:
+              evento: PRODUCTO_CREADO
+              mensaje: Se creo el producto Memoria RAM 122GB DDR4
+      responses:
+        "200":
+          description: Notificacion creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        "400":
+          description: Datos invalidos
+
+  /health:
+    get:
+      summary: Verificar estado del servicio
+      description: Retorna el estado actual del microservicio de notificaciones.
+      tags:
+        - Notificaciones
+      responses:
+        "200":
+          description: Servicio disponible
+          content:
+            application/json:
+              example:
+                status: OK
+                service: notification-service
+
+components:
+  schemas:
+    NotificationRequest:
+      type: object
+      required:
+        - evento
+        - mensaje
+      properties:
+        evento:
+          type: string
+          example: PRODUCTO_CREADO
+        mensaje:
+          type: string
+          example: Se creo el producto Memoria RAM 122GB DDR4
+
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        evento:
+          type: string
+          example: PRODUCTO_CREADO
+        mensaje:
+          type: string
+          example: Se creo el producto Memoria RAM 122GB DDR4
+        fecha:
+          type: string
+          format: date-time
+          example: "2026-06-17T02:30:52"
