@@ -1,0 +1,129 @@
+services:
+
+  auth-db:
+    image: postgres:16
+    container_name: tiendatech-auth-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: auth_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - tiendatech-net
+
+  resource-db:
+    image: postgres:16
+    container_name: tiendatech-resource-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: resource_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - resource_db_data:/var/lib/postgresql/data
+    networks:
+      - tiendatech-net
+
+  notification-db:
+    image: postgres:16
+    container_name: tiendatech-notification-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: notification_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    networks:
+      - tiendatech-net
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: tiendatech-auth-service
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - auth-db
+    ports:
+      - "8001:8001"
+    networks:
+      - tiendatech-net
+
+  resource-service:
+    build:
+      context: ./resource-service
+      dockerfile: Dockerfile
+    container_name: tiendatech-resource-service
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - resource-db
+      - notification-service
+    ports:
+      - "8002:8002"
+    networks:
+      - tiendatech-net
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: tiendatech-notification-service
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - notification-db
+    ports:
+      - "8003:8003"
+    networks:
+      - tiendatech-net
+
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: tiendatech-nginx-gateway
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - resource-service
+      - notification-service
+    networks:
+      - tiendatech-net
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: tiendatech-portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - tiendatech-net
+
+volumes:
+  auth_db_data:
+  resource_db_data:
+  notification_db_data:
+  portainer_data:
+
+networks:
+  tiendatech-net:
+    driver: bridge
