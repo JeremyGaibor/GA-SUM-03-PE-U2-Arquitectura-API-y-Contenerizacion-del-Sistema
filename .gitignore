@@ -5,8 +5,6 @@ target/
 *.war
 *.ear
 
-# Variables reales
-.env
 
 # IDEs
 .idea/
